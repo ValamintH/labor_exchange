@@ -43,3 +43,9 @@ async def get_by_email(db: AsyncSession, email: str) -> User:
     res = await db.execute(query)
     user = res.scalars().first()
     return user
+
+
+async def delete_user(db: AsyncSession, user: User) -> User:
+    await db.delete(user)
+    await db.commit()
+    return user
