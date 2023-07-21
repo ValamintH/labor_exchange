@@ -14,7 +14,7 @@ async def create_job(
         job: JobInSchema,
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)):
-    if current_user is None or not current_user.is_company:
+    if not current_user or not current_user.is_company:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для создания вакансии")
     job = await job_queries.create_job(db=db, job_schema=job, current_user=current_user)
     return JobSchema.from_orm(job)
@@ -33,7 +33,7 @@ async def read_job_by_id(
         job_id: int,
         db: AsyncSession = Depends(get_db)):
     job = await job_queries.get_job_by_id(db=db, job_id=job_id)
-    if job is None:
+    if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Вакансия не найдена")
     return JobSchema.from_orm(job)
 
@@ -44,11 +44,11 @@ async def delete_job(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)):
     job = await job_queries.get_job_by_id(db=db, job_id=job_id)
-    if job is None:
+    if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Вакансия не найдена")
     if current_user.id != job.user_id or not current_user.is_company:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для удаления вакансии")
 
-    job = await job_queries.delete_job(db=db, job=job)
+    job = await job_queries.delete_job(db=db, job_id=job.id)
 
     return JobSchema.from_orm(job)

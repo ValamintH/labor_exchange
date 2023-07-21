@@ -12,8 +12,8 @@ class Job(Base):
     user_id = sa.Column(sa.Integer, sa.ForeignKey('users.id', ondelete="CASCADE"), comment="Идентификатор пользователя")
     title = sa.Column(sa.String, comment="Название вакансии")
     description = sa.Column(sa.String, comment="Описание вакансии")
-    salary_from = sa.Column(sa.Numeric, comment="Зарплата от")
-    salary_to = sa.Column(sa.Numeric, comment="Зарплата до")
+    salary_from = sa.Column(sa.DECIMAL, comment="Зарплата от")
+    salary_to = sa.Column(sa.DECIMAL, comment="Зарплата до")
     is_active = sa.Column(sa.Boolean, comment="Активна ли вакансия")
     created_at = sa.Column(sa.DateTime, comment="Дата создания записи", default=datetime.datetime.utcnow)
 

@@ -1,7 +1,7 @@
 from models import Job, User
 from schemas import JobInSchema
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from typing import List, Optional
 
 
@@ -32,7 +32,11 @@ async def get_job_by_id(db: AsyncSession, job_id: int) -> Optional[Job]:
     return res.scalars().first()
 
 
-async def delete_job(db: AsyncSession, job: Job) -> Job:
-    await db.delete(job)
-    await db.commit()
-    return job
+async def delete_job(db: AsyncSession, job_id: int) -> Optional[Job]:
+    query = select(Job).where(Job.id == job_id).limit(1)
+    res = await db.execute(query)
+
+    query = delete(Job).where(Job.id == job_id)
+    await db.execute(query)
+
+    return res.scalars().first()

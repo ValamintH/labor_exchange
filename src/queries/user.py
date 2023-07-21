@@ -2,7 +2,7 @@ from models import User
 from schemas import UserInSchema
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from core.security import hash_password
 
 
@@ -45,7 +45,11 @@ async def get_by_email(db: AsyncSession, email: str) -> User:
     return user
 
 
-async def delete_user(db: AsyncSession, user: User) -> User:
-    await db.delete(user)
-    await db.commit()
-    return user
+async def delete_user(db: AsyncSession, user_id: int) -> Optional[User]:
+    query = select(User).where(User.id == user_id).limit(1)
+    res = await db.execute(query)
+
+    query = delete(User).where(User.id == user_id)
+    await db.execute(query)
+
+    return res.scalars().first()

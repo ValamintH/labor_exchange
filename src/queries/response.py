@@ -1,11 +1,11 @@
 from models import Response, User
 from schemas import ResponseInSchema
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from typing import List, Optional
 
 
-async def response_job(db: AsyncSession, response_schema: ResponseInSchema, current_user: User) -> Response:
+async def create_response(db: AsyncSession, response_schema: ResponseInSchema, current_user: User) -> Response:
     response = Response(
         job_id=response_schema.job_id,
         user_id=current_user.id,
@@ -29,9 +29,12 @@ async def get_response_by_id(db: AsyncSession, response_id: int) -> Optional[Res
     return res.scalars().first()
 
 
-async def delete_response(db: AsyncSession, response: Response) -> Response:
-    await db.delete(response)
-    await db.commit()
-    return response
+async def delete_response(db: AsyncSession, response_id: int) -> Optional[Response]:
+    query = select(Response).where(Response.id == response_id).limit(1)
+    res = await db.execute(query)
 
+    query = delete(Response).where(Response.id == response_id)
+    await db.execute(query)
+
+    return res.scalars().first()
 

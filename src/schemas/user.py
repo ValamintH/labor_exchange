@@ -63,4 +63,4 @@ class UserInSchema(BaseModel):
     def password_match(cls, v, values, **kwargs):
         if 'password' in values and v != values["password"]:
             raise ValueError("Пароли не совпадают!")
-        return True
+        return v

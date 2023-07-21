@@ -31,7 +31,7 @@ async def update_user(
         current_user: User = Depends(get_current_user)):
     old_user = await user_queries.get_by_id(db=db, id=id)
 
-    if old_user is None or old_user.email != current_user.email:
+    if not old_user or old_user.email != current_user.email:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
 
     old_user.name = user.name if user.name is not None else old_user.name
@@ -47,6 +47,6 @@ async def update_user(
 async def delete_user(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)):
-    deleted_user = await user_queries.delete_user(db=db, user=current_user)
+    deleted_user = await user_queries.delete_user(db=db, user_id=current_user.id)
 
     return UserSchema.from_orm(deleted_user)

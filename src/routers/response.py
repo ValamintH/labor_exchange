@@ -16,14 +16,14 @@ async def response_job(
         response: ResponseInSchema,
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)):
-    if current_user is None or current_user.is_company:
+    if not current_user or current_user.is_company:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для отклика на вакансию")
 
     job = await job_queries.get_job_by_id(db=db, job_id=response.job_id)
-    if job is None:
+    if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Вакансия не найдена")
 
-    job = await response_queries.response_job(db=db, response_schema=response, current_user=current_user)
+    job = await response_queries.create_response(db=db, response_schema=response, current_user=current_user)
     return ResponseSchema.from_orm(job)
 
 
@@ -35,7 +35,7 @@ async def read_responses_by_job_id(
         limit: int = 100,
         skip: int = 0):
     job = await job_queries.get_job_by_id(db=db, job_id=job_id)
-    if current_user is None or not current_user.is_company or job.user_id != current_user.id:
+    if not current_user or not current_user.is_company or job.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для чтения вакансий")
 
     return await response_queries.get_responses_by_job_id(db=db, job_id=job_id, limit=limit, skip=skip)
@@ -47,11 +47,11 @@ async def delete_response(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)):
     response = await response_queries.get_response_by_id(db=db, response_id=response_id)
-    if response is None:
+    if not response:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Отклик не найден")
     if current_user.id != response.user_id or current_user.is_company:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для удаления вакансии")
 
-    response = await response_queries.delete_response(db=db, response=response)
+    response = await response_queries.delete_response(db=db, response_id=response.id)
 
     return ResponseSchema.from_orm(response)
